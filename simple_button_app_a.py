@@ -20,7 +20,6 @@ class Client():
     def __init__(self, aid):
         self.aid = aid
         self.count = 0
-        self.previousTime = time.time()
         self.messages = []
 
     def send(self, data):
@@ -50,6 +49,7 @@ class App(CbApp):
     def __init__(self, argv):
         self.appClass = "monitor"
         self.state = "stopped"
+        self.previousTime = time.time()
         self.devices = []
         self.status = "ok"
         self.idToName = {} 
