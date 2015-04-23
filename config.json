@@ -1,0 +1,9 @@
+{
+    "exe": "simple_button_app.py", 
+    "name": "Simple Button App", 
+    "url": "https://github.com/ContinuumBridge/simple_button_app/archive/v0.1.0.tar.gz", 
+    "app_resource": "/api/bridge/v1/app/22", 
+    "version": "0.1.0", 
+    "provider": "ContinuumBridge", 
+    "description": "Sends alerts on button presses"
+}
