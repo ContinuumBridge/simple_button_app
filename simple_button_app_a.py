@@ -20,6 +20,7 @@ class Client():
     def __init__(self, aid):
         self.aid = aid
         self.count = 0
+        self.previousTime = time.time()
         self.messages = []
 
     def send(self, data):
@@ -49,12 +50,10 @@ class App(CbApp):
     def __init__(self, argv):
         self.appClass = "monitor"
         self.state = "stopped"
-        self.status = "ok"
-        self.button = []
-        self.connected = []
         self.devices = []
-        self.devServices = [] 
+        self.status = "ok"
         self.idToName = {} 
+        self.sensorsID = []
         #CbApp.__init__ MUST be called
         CbApp.__init__(self, argv)
 
@@ -69,14 +68,20 @@ class App(CbApp):
         self.sendManagerMessage(msg)
 
     def onConcMessage(self, message):
-        self.client.receive(message)
+        try:
+            self.client.receive(message)
+        except Exception as ex:
+            self.cbLog("debug", "message received from client before app configured")
+            self.cbLog("warning", "Exception: " + str(type(ex)) + str(ex.args))
 
     def onAdaptorData(self, message):
         self.cbLog("debug", "onadaptorData, message: " + str(json.dumps(message, indent=4)))
-        if True:
+        now = time.time()
+        if now - self.previousTime > 3:
             self.cbLog("debug", "onAdaptorData, button received")
-            msg = {"m": "alarm",
-                   "s": "Test",
+            self.previousTime = now
+            msg = {"m": "button",
+                   "s": self.idToName[message["id"]],
                    "t": time.time()
                   }
             self.client.send(msg)
@@ -144,6 +149,14 @@ class App(CbApp):
             elif c.lower in ("false", "f", "0"):
                 config[c] = False
         self.cbLog("debug", "Config: " + str(json.dumps(config, indent=4)))
+        for adaptor in managerConfig["adaptors"]:
+            adtID = adaptor["id"]
+            if adtID not in self.devices:
+                # Because managerConfigure may be re-called if devices are added
+                name = adaptor["name"]
+                friendly_name = adaptor["friendly_name"]
+                self.cbLog("debug", "managerConfigure app. Adaptor id: " +  adtID + " name: " + name + " friendly_name: " + friendly_name)
+                self.idToName[adtID] = friendly_name
         self.client = Client(self.id)
         self.client.sendMessage = self.sendMessage
         self.client.cbLog = self.cbLog
